@@ -1,0 +1,11 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<sequence name="clienteIdNoExiste" trace="disable" xmlns="http://ws.apache.org/ns/synapse">
+    <property name="HTTP_SC" value="404" scope="axis2" />
+    <payloadFactory media-type="json" template-type="default">
+        <format>{"error":{"code":"PAYLOAD_ERROR","message":"clienteId no existe."}}</format>
+    </payloadFactory>
+    <log category="INFO" logMessageID="false" logFullPayload="false">
+        <message>Error: ${payload}</message>
+    </log>
+    <respond />
+</sequence>

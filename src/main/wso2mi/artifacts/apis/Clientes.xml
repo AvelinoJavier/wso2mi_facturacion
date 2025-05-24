@@ -1,0 +1,35 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<api context="/clientes" name="Clientes" xmlns="http://ws.apache.org/ns/synapse">
+    <resource methods="GET" uri-template="/{id}">
+        <inSequence>
+            <log category="INFO" logMessageID="false" logFullPayload="false"
+                description="Datos de entrada">
+                <message>Datos de entrada: ${params.pathParams.id}</message>
+            </log>
+            <http.get configKey="OrdenesConn">
+                <relativePath>/ordenes/?clienteId=${params.pathParams.id}</relativePath>
+                <headers>[]</headers>
+                <forceScAccepted>false</forceScAccepted>
+                <disableChunking>false</disableChunking>
+                <forceHttp10>false</forceHttp10>
+                <noKeepAlive>false</noKeepAlive>
+                <responseVariable>http_get_1</responseVariable>
+                <overwriteBody>true</overwriteBody>
+            </http.get>
+            <log category="INFO" logMessageID="false" logFullPayload="false"
+                description="Órdenes obtenidas">
+                <message>Ordenes obtenidas: ${payload}</message>
+            </log>
+            <filter
+                description="Si el payload tiene productos, el cliente existe. Sino lanza Error."
+                xpath="${payload.clienteId != params.pathParams.id}">
+                <then>
+                    <sequence key="clienteIdNoExiste" />
+                </then>
+            </filter>
+            <respond />
+        </inSequence>
+        <faultSequence>
+        </faultSequence>
+    </resource>
+</api>

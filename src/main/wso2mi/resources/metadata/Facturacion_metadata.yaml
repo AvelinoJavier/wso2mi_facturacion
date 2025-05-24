@@ -1,0 +1,10 @@
+---
+key: "Facturacion-1.0.0"
+name : "Facturacion"
+displayName : "Facturacion"
+description: "Facturacion"
+version: "1.0.0"
+serviceUrl: "https://{MI_HOST}:{MI_PORT}/facturacion"
+definitionType: "OAS3"
+securityType: "BASIC"
+mutualSSLEnabled: false

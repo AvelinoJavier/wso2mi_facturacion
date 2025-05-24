@@ -1,0 +1,84 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<api name="Ordenes" context="/ordenes" xmlns="http://ws.apache.org/ns/synapse">
+    <resource methods="POST" uri-template="/">
+        <inSequence>
+            <log category="INFO" logMessageID="false" logFullPayload="false"
+                description="Datos de entrada">
+                <message>Datos de entrada: ${payload}</message>
+            </log>
+            <filter description="clienteID es requerido. Sino lanza Error."
+                xpath="${exists(payload.clienteId)}">
+                <then>
+                    <variable name="clienteId" type="STRING" expression="${payload.clienteId}" />
+                    <http.get configKey="OrdenesConn">
+                        <relativePath>/ordenes/?clienteId=${vars.clienteId}</relativePath>
+                        <headers>[]</headers>
+                        <forceScAccepted>false</forceScAccepted>
+                        <disableChunking>false</disableChunking>
+                        <forceHttp10>false</forceHttp10>
+                        <noKeepAlive>false</noKeepAlive>
+                        <responseVariable>http_get_1</responseVariable>
+                        <overwriteBody>true</overwriteBody>
+                    </http.get>
+                    <log category="INFO" logMessageID="false" logFullPayload="false"
+                        description="Órdenes obtenidas">
+                        <message>Ordenes obtenidas: ${payload}</message>
+                    </log>
+                    <filter
+                        description="Si el payload tiene productos, el cliente existe. Sino lanza Error."
+                        xpath="${payload.clienteId != vars.clienteId}">
+                        <then>
+                            <sequence key="clienteIdNoExiste" />
+                        </then>
+                    </filter>
+                    <script
+                        description="Obtenemos el precio total de los productos del cliente"
+                        language="js"><![CDATA[
+                        const productos=  mc.getPayloadJSON().productos;
+                        let precioTotal = 0.0;
+                        for (i = 0; i < productos.length; i++) {
+                        precioTotal += productos[i].precio
+                        }
+                        const response = new Object();
+                        response.precioTotal = precioTotal;
+                        mc.setPayloadJSON(response);
+                    ]]></script>
+                    <payloadFactory media-type="xml" template-type="default">
+                        <format>
+                            <soapenv:Envelope
+                                xmlns:soapenv="http://schemas.xmlsoap.org/soap/envelope/"
+                                xmlns:fac="http://example.com/factura">
+                                <soapenv:Header />
+                                <soapenv:Body>
+                                    <fac:procesarOrdenRequest>
+                                        <clienteId>${vars.clienteId}</clienteId>
+                                        <total>${payload.precioTotal}</total>
+                                    </fac:procesarOrdenRequest>
+                                </soapenv:Body>
+                            </soapenv:Envelope>
+                        </format>
+                    </payloadFactory>
+                    <log category="INFO" logMessageID="false" logFullPayload="false"
+                        description="Datos a enviar a facturación.">
+                        <message>Datos a enviar a facturacion: ${payload}</message>
+                    </log>
+                    <call>
+                        <endpoint key="Facturacion" />
+                    </call>
+                    <log category="INFO" logMessageID="false" logFullPayload="false"
+                        description="Datos recibidos de facturación.">
+                        <message>Datos recibidos de facturacion: ${payload}</message>
+                    </log>
+                    <property description="Convert XML payload to JSON" name="messageType"
+                        scope="axis2" type="STRING" value="application/json" />
+                    <respond />
+                </then>
+                <else>
+                    <sequence key="clienteIdNoExiste" />
+                </else>
+            </filter>
+        </inSequence>
+        <faultSequence>
+        </faultSequence>
+    </resource>
+</api>

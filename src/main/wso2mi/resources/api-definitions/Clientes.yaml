@@ -1,0 +1,19 @@
+openapi: 3.0.1
+info:
+  title: Clientes
+  description: API Definition of Clientes
+  version: 1.0.0
+servers:
+- url: http://localhost:8290/clientes
+paths:
+  /{id}:
+    get:
+      parameters:
+      - name: id
+        in: path
+        required: true
+        schema:
+          type: string
+      responses:
+        default:
+          description: Default response

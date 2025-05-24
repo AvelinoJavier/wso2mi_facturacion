@@ -1,0 +1,17 @@
+{
+  "type": "API",
+  "/": {
+    "requests": [
+      {
+        "name": "request",
+        "contentType": "application/json",
+        "content": {
+          "clienteId": "123"
+        },
+        "queryParams": {},
+        "pathParams": {}
+      }
+    ],
+    "defaultRequest": "request"
+  }
+}
